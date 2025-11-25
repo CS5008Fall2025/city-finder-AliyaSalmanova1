@@ -4,8 +4,10 @@ CFILES =  # this variable is the list of files to compile - UPDATE THIS LINE wit
 
 all: myprogram  #runs target myprogram is nothing is passed into make
 
+MAP_SRC = map.c
+
 myprogram: # it needs to compile out to >>>map.out<<<!
-	$(CC) $(CFLAGS) -o map.out $(CFILES)  
+	$(CC) $(CFLAGS) -o map.out $(CFILES) $(MAP_SRC) 
 	
 
 
