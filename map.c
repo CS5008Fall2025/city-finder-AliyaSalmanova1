@@ -1,13 +1,29 @@
 
-#import <stdio.h>
-#import <stdlib.h>
-#import <string.h>
-#import <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 #include <ctype.h>
 #include "map.h"
 
+#define MAX_FILE_LINE_LENGTH 226
 
-int MAX_FILE_LINE_LENGTH = 226;
+typedef struct DestinationNode{
+    int distance;
+    struct DestinationNode *next;
+} DestinationNode;
+
+typedef struct City{
+    char cityName[MAX_FILE_LINE_LENGTH];
+    struct DestinationNode *destinations;
+} City;
+
+typedef struct AdjCityListGraph{
+    int length;
+    City **cityList;
+} AdjCityListGraph;
+
+
 
 
 bool validCities(const char *city1, const char *city2, const char *fileName){
@@ -31,37 +47,65 @@ bool validCities(const char *city1, const char *city2, const char *fileName){
     
 }
 
-/*bool makeGraph(const char *citiesFileName, const char *distancesFileName){
+AdjCityListGraph* makeGraphFromCities(int fileLength, FILE *citiesFilePtr){
+
+    AdjCityListGraph *graph = (AdjCityListGraph*)malloc(sizeof(AdjCityListGraph));
+    graph->length = fileLength;
+    graph->cityList = (City**)malloc(sizeof(City) * fileLength);
+
     char buffer[MAX_FILE_LINE_LENGTH];
+
+    int i = 0;
+    while (fgets(buffer, MAX_FILE_LINE_LENGTH, citiesFilePtr) != NULL){
+        City *city = (City*)malloc(sizeof(City));
+        strncpy(city->cityName, buffer, MAX_FILE_LINE_LENGTH);
+        city->destinations = NULL;
+        graph->cityList[i++] = city;
+        
+    }
+
+    return graph;
+
+}
+
+void addEdgesToGraph(AdjCityListGraph *graph, FILE *distancesFilePtr){
+
+    char buffer[MAX_FILE_LINE_LENGTH];
+
+    while (fgets(buffer, MAX_FILE_LINE_LENGTH, distancesFilePtr) != NULL){
+        
+    }
+
+}
+
+
+
+AdjCityListGraph* convertFilesToGraph(const char *citiesFileName, const char *distancesFileName){
+    char buffer[MAX_FILE_LINE_LENGTH];
+
+    FILE *citiesFilePtr;
+    FILE *distancesFilePtr;
 
     citiesFilePtr = fopen(citiesFileName, "r");
     distancesFilePtr = fopen(distancesFileName, "r");
 
-    if (citiesFilePtr == NULL || ) {
+
+    /*if (citiesFilePtr == NULL || distancesFilePtr || NULL) {
         perror("Error opening a file");
-        return EXIT_FAILURE;
-    }
+    }*/
 
     int fileLength = 0;
     while (fgets(buffer, MAX_FILE_LINE_LENGTH, citiesFilePtr) != NULL){
         fileLength++;
     }
 
-    AdjCityListGraph *graph;
-    graph->length = fileLength;
-    graph->
-
-    while (fgets(buffer, MAX_FILE_LINE_LENGTH, fileName) != NULL){
-
-        
-
-        while (fgets(buffer, MAX_FILE_LINE_LENGTH, fileName) != NULL){
-        
-        }
-    }
+    AdjCityListGraph * adjCityListGraph = makeGraphFromCities(fileLength, citiesFilePtr);
     
-}*/
+    addEdgesToGraph(adjCityListGraph, distancesFilePtr);
 
+    return adjCityListGraph;
+    
+}
 
 
 
@@ -100,6 +144,8 @@ int main (int argc, char *argv[]){
         printf("Invalid file!\n");
         return 1;
     }
+
+    AdjCityListGraph* graph = convertFilesToGraph(argv[1], argv[2]);
 
     char choice[100] = "";
     
