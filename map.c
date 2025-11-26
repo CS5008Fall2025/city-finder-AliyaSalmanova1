@@ -94,7 +94,7 @@ void addEdgesToGraph(AdjCityListGraph *graph, const char *distancesFileName){
         destinationName = strtok(NULL, " ");
         distance = strtok(NULL, " ");
 
-        printf("source: %s, destinationName: %s, distance: %s\n", source, destinationName, distance);
+        //printf("source: %s, destinationName: %s, distance: %s\n", source, destinationName, distance);
 
         if (!validCity(source, graph) || !validCity(destinationName, graph)){
             continue;
@@ -258,6 +258,14 @@ void displayPrompt(){
     printf("Where do you want to go today? what do i do?\n");
 }
 
+
+void printCities(AdjCityListGraph *graph){
+    for (int i = 0; i < graph->length; i++){
+        City *city = graph->cityList[i];
+        printf("%s\n", city->cityName);
+    }
+}
+
 int main (int argc, char *argv[]){
 
     if (argc < 3) {
@@ -270,11 +278,11 @@ int main (int argc, char *argv[]){
     }
 
     AdjCityListGraph* graph = convertFilesToGraph(argv[1], argv[2]);
-    printGraph(graph);
+    //printGraph(graph);
 
     char choice[100] = "";
     
-    while (true){
+    while (strcmp(choice, "exit") != 0){
         displayPrompt();
 
         if (fgets(choice, sizeof(choice), stdin) == NULL) {
@@ -283,9 +291,10 @@ int main (int argc, char *argv[]){
 
         if (strcmp(choice, "help") == 0){
             continue;
-        } else if (strcmp(choice, "exit") == 0){
+        } if (strcmp(choice, "list") == 0 || strcmp(choice, "list\n") == 0){
+            printCities(graph);
+        }else if (strcmp(choice, "exit") == 0){
             printf("Goodbye!");
-            break;
         } else{
             char *city1;
             char *city2;
