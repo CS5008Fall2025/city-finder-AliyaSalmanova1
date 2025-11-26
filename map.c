@@ -110,21 +110,24 @@ void addEdgesToGraph(AdjCityListGraph *graph, const char *distancesFileName){
         int srcIndex  = findIndexOfVertex(source, graph);
         int destIndex = findIndexOfVertex(destinationName, graph);
 
-        // Edge: source -> destination
-        DestinationNode *node1 = (DestinationNode *)malloc(sizeof(DestinationNode));
-        strncpy(node1->destinationName, destinationName, MAX_FILE_LINE_LENGTH);
-        node1->vertexIndex = destIndex;
-        node1->distance = distVal;
-        node1->next = graph->cityList[srcIndex]->destinations;
-        graph->cityList[srcIndex]->destinations = node1;
+        if (!edgeExists(graph, srcIndex, destIndex)) {
+            DestinationNode *node1 = (DestinationNode *)malloc(sizeof(DestinationNode));
+            strncpy(node1->destinationName, destinationName, MAX_FILE_LINE_LENGTH);
+            node1->vertexIndex = destIndex;
+            node1->distance = distVal;
+            node1->next = graph->cityList[srcIndex]->destinations;
+            graph->cityList[srcIndex]->destinations = node1;
+        }
 
-        // Edge: destination -> source (undirected)
-        DestinationNode *node2 = (DestinationNode *)malloc(sizeof(DestinationNode));
-        strncpy(node2->destinationName, source, MAX_FILE_LINE_LENGTH);
-        node2->vertexIndex = srcIndex;
-        node2->distance = distVal;
-        node2->next = graph->cityList[destIndex]->destinations;
-        graph->cityList[destIndex]->destinations = node2;
+
+        if (!edgeExists(graph, destIndex, srcIndex)) {
+            DestinationNode *node2 = (DestinationNode *)malloc(sizeof(DestinationNode));
+            strncpy(node2->destinationName, source, MAX_FILE_LINE_LENGTH);
+            node2->vertexIndex = srcIndex;
+            node2->distance = distVal;
+            node2->next = graph->cityList[destIndex]->destinations;
+            graph->cityList[destIndex]->destinations = node2;
+        }
 
     }
 
