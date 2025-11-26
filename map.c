@@ -105,25 +105,26 @@ void addEdgesToGraph(AdjCityListGraph *graph, const char *distancesFileName){
             continue;
         }
 
-        bool cityAdded = false;
-        
+        int distVal = atoi(distance);
 
-        int i = 0;
-        while (cityAdded == false && i < graph->length){
-            if (strcmp(source, graph->cityList[i]->cityName) == 0){
-                DestinationNode *node = (DestinationNode *)malloc(sizeof(DestinationNode));
-                strncpy(node->destinationName, destinationName, 226);
-                node->vertexIndex = findIndexOfVertex(node->destinationName, graph);
-                node->distance = atoi(distance);
-                node->next = graph->cityList[i]->destinations;
-                graph->cityList[i]->destinations = node;
-                cityAdded = true;
-                break;
-                
-            }else{
-                i++;
-            }
-        }
+        int srcIndex  = findIndexOfVertex(source, graph);
+        int destIndex = findIndexOfVertex(destinationName, graph);
+
+        // Edge: source -> destination
+        DestinationNode *node1 = (DestinationNode *)malloc(sizeof(DestinationNode));
+        strncpy(node1->destinationName, destinationName, MAX_FILE_LINE_LENGTH);
+        node1->vertexIndex = destIndex;
+        node1->distance = distVal;
+        node1->next = graph->cityList[srcIndex]->destinations;
+        graph->cityList[srcIndex]->destinations = node1;
+
+        // Edge: destination -> source (undirected)
+        DestinationNode *node2 = (DestinationNode *)malloc(sizeof(DestinationNode));
+        strncpy(node2->destinationName, source, MAX_FILE_LINE_LENGTH);
+        node2->vertexIndex = srcIndex;
+        node2->distance = distVal;
+        node2->next = graph->cityList[destIndex]->destinations;
+        graph->cityList[destIndex]->destinations = node2;
 
     }
 
@@ -170,6 +171,17 @@ AdjCityListGraph* convertFilesToGraph(const char *citiesFileName, const char *di
 
     return adjCityListGraph;
     
+}
+
+bool edgeExists(AdjCityListGraph *graph, int srcIndex, int destIndex) {
+    DestinationNode *curr = graph->cityList[srcIndex]->destinations;
+    while (curr != NULL) {
+        if (curr->vertexIndex == destIndex) {
+            return true;
+        }
+        curr = curr->next;
+    }
+    return false;
 }
 
 
@@ -238,7 +250,7 @@ void dijkstrasAlgo(const char *city1, const char *city2, AdjCityListGraph *graph
 
 	
 	if (minDistances[city2Index] == INT_MAX){
-		printf("No path found.\n");
+		printf("Path Not Found...\n");
 	}else {
 		Node *node = NULL;  
     	int prev = city2Index;
@@ -252,7 +264,7 @@ void dijkstrasAlgo(const char *city1, const char *city2, AdjCityListGraph *graph
     	while (strcmp(graph->cityList[prev]->cityName, city1) != 0){
         	prev = previous[prev];
         	if (prev == -1) {
-            	printf("No path found.\n");
+            	printf("Path Not Found...\n");
             
             	return;
         	}
