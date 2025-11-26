@@ -86,7 +86,7 @@ void addEdgesToGraph(AdjCityListGraph *graph, const char *distancesFileName){
 
     FILE *distancesFilePtr;
     distancesFilePtr = fopen(distancesFileName, "r");
-    printf("in addEdgesToGraph\n");
+
 
     char buffer[MAX_FILE_LINE_LENGTH];
 
@@ -210,8 +210,14 @@ void dijkstrasAlgo(const char *city1, const char *city2, AdjCityListGraph *graph
     minDistances[city1Index] = 0;
     previous[city1Index] = 0;
     
-    while (!allVisited(visited, graph->length)){
+    // Dijkstra
+    while (1) {
         int currCityIndex = findMinDistanceIndex(minDistances, visited, graph->length);
+        if (currCityIndex == -1) {
+            // no more reachable vertices
+            break;
+        }
+ 
         City *currentCity = graph->cityList[currCityIndex];
         DestinationNode *destinations = currentCity->destinations;
         while (destinations != NULL){
@@ -351,17 +357,18 @@ int main (int argc, char *argv[]){
         } if (strcmp(choice, "list") == 0 || strcmp(choice, "list\n") == 0){
             printCities(graph);
         }else if (strcmp(choice, "exit") == 0){
-            printf("Goodbye!");
+            printf("Goodbye!\n");
 			break;
         } else{
             char *city1Raw = strtok(choice, " ");
             char *city2Raw = strtok(NULL, " ");
 
-        	if (city1Raw == NULL || city2Raw == NULL) {
-
-        		printf("City 2 is not a valid city!\n");
-        		continue;
-    		}
+            if (city1Raw == NULL || city2Raw == NULL ||
+                !validCity(city1Raw, graph) || !validCity(city2Raw, graph)) {
+                printf("Invalid Command\n");
+                printCommands();
+                continue;
+            }
 
     		char *city1 = makeStringLowercase(city1Raw);
     		char *city2 = makeStringLowercase(city2Raw);
