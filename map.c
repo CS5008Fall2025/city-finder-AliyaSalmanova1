@@ -28,6 +28,11 @@ typedef struct AdjCityListGraph{
     City **cityList;
 } AdjCityListGraph;
 
+typedef struct Node{
+	char cityName[MAX_FILE_LINE_LENGTH];
+	struct Node *next;
+} Node;
+
 
 
 bool validCity(const char *city1, AdjCityListGraph *graph){
@@ -43,7 +48,7 @@ AdjCityListGraph* makeGraphFromCities(int fileLength, FILE *citiesFilePtr, const
 
     AdjCityListGraph *graph = (AdjCityListGraph*)malloc(sizeof(AdjCityListGraph));
     graph->length = fileLength;
-    graph->cityList = (City**)malloc(sizeof(City) * fileLength);
+    graph->cityList = (City**)malloc(sizeof(City*) * fileLength);
 
     char buffer[MAX_FILE_LINE_LENGTH];
     citiesFilePtr = fopen(citiesFileName, "r");
@@ -190,53 +195,89 @@ int findMinDistanceIndex(int *minDistances, bool *visited, int length){
 }
 
 void dijkstrasAlgo(const char *city1, const char *city2, AdjCityListGraph *graph){
-    printf("in dijkstrasAlgo");
+
     int *minDistances = (int *)malloc(sizeof(int) * graph->length);
-    //int previous[graph->length];
+    int previous[graph->length];
     bool *visited = (bool *)malloc(sizeof(bool) * graph->length);
 
     for (int i = 0; i < graph->length; i++){
         minDistances[i] = INT_MAX;
-        //previous[i] = -1;
+        previous[i] = -1;
         visited[i] = false;
     }
 
     int city1Index = findIndexOfVertex(city1, graph);
     minDistances[city1Index] = 0;
-    //previous[city1Index] = 0;
+    previous[city1Index] = 0;
     
     while (!allVisited(visited, graph->length)){
         int currCityIndex = findMinDistanceIndex(minDistances, visited, graph->length);
         City *currentCity = graph->cityList[currCityIndex];
         DestinationNode *destinations = currentCity->destinations;
         while (destinations != NULL){
-            printf("testingL %d\n", destinations->distance);
+  
             if (minDistances[currCityIndex] + destinations->distance <= 
                 minDistances[destinations->vertexIndex]){
                     
                     minDistances[destinations->vertexIndex] = minDistances[currCityIndex] + destinations->distance;
+					previous[destinations->vertexIndex] = currCityIndex;
             }
             destinations = destinations->next;
         }
         visited[currCityIndex] = true;
         
     }
-    printf("smallest path: %d\n", minDistances[findIndexOfVertex(city2, graph)]);
+
+    int city2Index = findIndexOfVertex(city2, graph);
+
+	
+	if (minDistances[city2Index] == INT_MAX){
+		printf("No path found.\n");
+	}else {
+		Node *node = NULL;  
+    	int prev = city2Index;
+
+
+    	Node *start = (Node *)malloc(sizeof(Node));
+    	strcpy(start->cityName, graph->cityList[prev]->cityName);
+    	start->next = NULL;
+    	node = start;
+
+    	while (strcmp(graph->cityList[prev]->cityName, city1) != 0){
+        	prev = previous[prev];
+        	if (prev == -1) {
+            	printf("No path found.\n");
+            
+            	return;
+        	}
+        	Node *newNode = (Node *)malloc(sizeof(Node));
+        	strcpy(newNode->cityName, graph->cityList[prev]->cityName);
+        	newNode->next = node;
+        	node = newNode;
+    	}
+
+
+
+    	Node *curr = node;
+    	while (curr != NULL){
+        	printf("%s\n", curr->cityName);
+        	curr = curr->next;
+    	}
+    	printf("Total Distance: %d\n", minDistances[city2Index]);
+	}
+
 }
 
 
+char *makeStringLowercase(const char *string){
+    size_t len = strlen(string);
+    char *stringLowercase = malloc(len + 1);  
+    if (!stringLowercase) return NULL;
 
-
-char * makeStringLowercase(const char *string){
-    char *stringLowercase = (char *)malloc(strlen(string) * sizeof(char));;
-    
-    int i = 0;
-    while (string[i] != '\0'){
-        //printf("%c\n", string[i]);
-        stringLowercase[i] = tolower(string[i]);
-        i++;
+    for (size_t i = 0; i < len; i++){
+        stringLowercase[i] = tolower((unsigned char)string[i]);
     }
-
+    stringLowercase[len] = '\0';
     return stringLowercase; 
 }
 
@@ -296,9 +337,12 @@ int main (int argc, char *argv[]){
     while (true){
 		
 		printQuestion();
-        if (scanf(" %99s", choice) != 1) {
-        	break;
+        if (fgets(choice, sizeof(choice), stdin) == NULL) {
+        	break;  // EOF
     	}
+
+    	// Strip trailing newline if present
+    	choice[strcspn(choice, "\n")] = '\0';
 
         if (strcmp(choice, "help") == 0){
             printCommands();
@@ -308,33 +352,30 @@ int main (int argc, char *argv[]){
             printCities(graph);
         }else if (strcmp(choice, "exit") == 0){
             printf("Goodbye!");
+			break;
         } else{
-            char *city1;
-            char *city2;
-            city1 = strtok(choice, " ");
-            city1 = makeStringLowercase(city1);
-            //printf("city1: %s,\n", city1);
-            city2 = strtok(NULL, " ");
-            int j = 0;
-            while (city2[j] != '\n' && city2[j] != '\0'){
-                j++;
-            }
-            if (city2[j] == '\n') city2[j] = '\0';
-            
-            city2 = makeStringLowercase(city2);
-            //printf("city2: %s,\n", city2);
-            /*while (city2 != NULL) {
-                city2 = makeStringLowercase(strtok(NULL, " ")); 
-            } */
-            if (validCity(city1, graph) == false){
-                printf("City 1 is not a valid city!\n");
-            } else if (validCity(city2, graph) == false){
-                printf("City 2 is not a valid city!\n");
-            }else {
-                //printGraph(graph);
-                printf("gonna do dijkstras\n");
-                dijkstrasAlgo(city1, city2, graph);
-            }
+            char *city1Raw = strtok(choice, " ");
+            char *city2Raw = strtok(NULL, " ");
+
+        	if (city1Raw == NULL || city2Raw == NULL) {
+
+        		printf("City 2 is not a valid city!\n");
+        		continue;
+    		}
+
+    		char *city1 = makeStringLowercase(city1Raw);
+    		char *city2 = makeStringLowercase(city2Raw);
+
+    		if (!validCity(city1, graph)) {
+        		printf("City 1 is not a valid city!\n");
+    		} else if (!validCity(city2, graph)) {
+        		printf("City 2 is not a valid city!\n");
+    		} else {
+        		dijkstrasAlgo(city1, city2, graph);
+    		}
+
+    		free(city1);
+    		free(city2);
         }
     }
 }
