@@ -4,13 +4,17 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <math.h>
+#include <limits.h>
 #include "map.h"
+
 
 #define MAX_FILE_LINE_LENGTH 226
 
 typedef struct DestinationNode{
     char destinationName[MAX_FILE_LINE_LENGTH];
     int distance;
+    int vertexIndex;
     struct DestinationNode *next;
 } DestinationNode;
 
@@ -63,6 +67,16 @@ AdjCityListGraph* makeGraphFromCities(int fileLength, FILE *citiesFilePtr, const
 
 }
 
+int findIndexOfVertex(const char *cityName, AdjCityListGraph *graph){
+
+    for (int i = 0; i < graph->length; i++){
+        if (strcmp(cityName, graph->cityList[i]->cityName) == 0){
+            return i;
+        }
+    }
+    return -1;
+}
+
 void addEdgesToGraph(AdjCityListGraph *graph, const char *distancesFileName){
 
     FILE *distancesFilePtr;
@@ -94,7 +108,7 @@ void addEdgesToGraph(AdjCityListGraph *graph, const char *distancesFileName){
             if (strcmp(source, graph->cityList[i]->cityName) == 0){
                 DestinationNode *node = (DestinationNode *)malloc(sizeof(DestinationNode));
                 strncpy(node->destinationName, destinationName, 226);
-                
+                node->vertexIndex = findIndexOfVertex(node->destinationName, graph);
                 node->distance = atoi(distance);
                 node->next = graph->cityList[i]->destinations;
                 graph->cityList[i]->destinations = node;
@@ -155,10 +169,62 @@ AdjCityListGraph* convertFilesToGraph(const char *citiesFileName, const char *di
 
 
 
+bool allVisited(bool *visited, int length){
+    for (int i = 0; i < length; i++){
+        if (visited[i] == false) return false;
 
-void djikstrasAlgo(const char *city1, const char *city2){
-    
+    }
+    return true;
 }
+
+int findMinDistanceIndex(int *minDistances, bool *visited, int length){
+    int minDistance = INT_MAX;
+    int index = -1;
+    for (int i = 0; i < length; i++){
+        if (!visited[i] && minDistances[i] < minDistance){
+            minDistance = minDistances[i];
+            index = i;
+        }
+    }
+    return index;
+}
+
+void dijkstrasAlgo(const char *city1, const char *city2, AdjCityListGraph *graph){
+    printf("in dijkstrasAlgo");
+    int *minDistances = (int *)malloc(sizeof(int) * graph->length);
+    int previous[graph->length];
+    bool *visited = (bool *)malloc(sizeof(bool) * graph->length);
+
+    for (int i = 0; i < graph->length; i++){
+        minDistances[i] = INT_MAX;
+        previous[i] = -1;
+        visited[i] = false;
+    }
+
+    int city1Index = findIndexOfVertex(city1, graph);
+    minDistances[city1Index] = 0;
+    previous[city1Index] = 0;
+    
+    while (!allVisited(visited, graph->length)){
+        int currCityIndex = findMinDistanceIndex(minDistances, visited, graph->length);
+        City *currentCity = graph->cityList[currCityIndex];
+        DestinationNode *destinations = currentCity->destinations;
+        while (destinations != NULL){
+            printf("testingL %d\n", destinations->distance);
+            if (minDistances[currCityIndex] + destinations->distance <= 
+                minDistances[destinations->vertexIndex]){
+                    
+                    minDistances[destinations->vertexIndex] = minDistances[currCityIndex] + destinations->distance;
+            }
+            destinations = destinations->next;
+        }
+        visited[currCityIndex] = true;
+        
+    }
+    printf("smallest path: %d\n", minDistances[findIndexOfVertex(city2, graph)]);
+}
+
+
 
 
 char * makeStringLowercase(const char *string){
@@ -243,8 +309,9 @@ int main (int argc, char *argv[]){
             } else if (validCity(city2, graph) == false){
                 printf("City 2 is not a valid city!\n");
             }else {
-                printGraph(graph);
-                djikstrasAlgo(city1, city2);
+                //printGraph(graph);
+                printf("gonna do dijkstras\n");
+                dijkstrasAlgo(city1, city2, graph);
             }
         }
     }
