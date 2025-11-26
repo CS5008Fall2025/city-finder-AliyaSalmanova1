@@ -192,18 +192,18 @@ int findMinDistanceIndex(int *minDistances, bool *visited, int length){
 void dijkstrasAlgo(const char *city1, const char *city2, AdjCityListGraph *graph){
     printf("in dijkstrasAlgo");
     int *minDistances = (int *)malloc(sizeof(int) * graph->length);
-    int previous[graph->length];
+    //int previous[graph->length];
     bool *visited = (bool *)malloc(sizeof(bool) * graph->length);
 
     for (int i = 0; i < graph->length; i++){
         minDistances[i] = INT_MAX;
-        previous[i] = -1;
+        //previous[i] = -1;
         visited[i] = false;
     }
 
     int city1Index = findIndexOfVertex(city1, graph);
     minDistances[city1Index] = 0;
-    previous[city1Index] = 0;
+    //previous[city1Index] = 0;
     
     while (!allVisited(visited, graph->length)){
         int currCityIndex = findMinDistanceIndex(minDistances, visited, graph->length);
