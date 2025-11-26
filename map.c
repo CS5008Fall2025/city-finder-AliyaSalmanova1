@@ -252,11 +252,7 @@ void printGreeting(){
 }
 
 void printCommands(){
-	printf("Commands:\n");
-    printf("\tlist - list all cities\n");
-    printf("\t<city1> <city2> - find the shortest path between two cities\n");
-    printf("\thelp - print this help message\n");
-    printf("\texit - exit the program\n");
+	printf("Commands:\n\tlist - list all cities\n\t<city1> <city2> - find the shortest path between two cities\n\thelp - print this help message\n\texit - exit the program\n");
 }
 
 void printLine(){
@@ -298,14 +294,13 @@ int main (int argc, char *argv[]){
 
 
     while (true){
-
 		
 		printQuestion();
-        if (fgets(choice, sizeof(choice), stdin) == NULL) {
-            break; 
-        }
+        if (scanf(" %99s", choice) != 1) {
+        	break;
+    	}
 
-        if (strcmp(choice, "help") == 0 || strcmp(choice, "help\n") == 0){
+        if (strcmp(choice, "help") == 0){
             printCommands();
 			continue;
 			
