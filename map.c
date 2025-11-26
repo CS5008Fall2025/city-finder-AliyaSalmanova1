@@ -247,15 +247,24 @@ bool validateFile(const char *file){
     return file_pointer != NULL;
 }
 
-void displayPrompt(){
+void printGreeting(){
     printf("*****Welcome to the shortest path finder!******\n");
-    printf("Commands:\n");
+}
+
+void printCommands(){
+	printf("Commands:\n");
     printf("\tlist - list all cities\n");
     printf("\t<city1> <city2> - find the shortest path between two cities\n");
     printf("\thelp - print this help message\n");
     printf("\texit - exit the program\n");
+}
+
+void printLine(){
     printf("*******************************************************\n");
-    printf("Where do you want to go today? what do i do?\n");
+}
+
+void printQuestion(){
+	printf("Where do you want to go today? what do i do? ");
 }
 
 
@@ -282,15 +291,24 @@ int main (int argc, char *argv[]){
 
     char choice[100] = "";
     
-    while (strcmp(choice, "exit") != 0){
-        displayPrompt();
 
+	printGreeting();
+	printCommands();
+	printLine();
+
+
+    while (true){
+
+		
+		printQuestion();
         if (fgets(choice, sizeof(choice), stdin) == NULL) {
             break; 
         }
 
-        if (strcmp(choice, "help") == 0){
-            continue;
+        if (strcmp(choice, "help") == 0 || strcmp(choice, "help\n") == 0){
+            printCommands();
+			continue;
+			
         } if (strcmp(choice, "list") == 0 || strcmp(choice, "list\n") == 0){
             printCities(graph);
         }else if (strcmp(choice, "exit") == 0){
